@@ -1,0 +1,16 @@
+{
+  "name": "bitrix24/local-project",
+  "description": "Bitrix24 Local Extensions and Dependencies",
+  "type": "project",
+  "require-dev": {
+    "symfony/var-dumper": "^7.0"
+  },
+  "config": {
+    "vendor-dir": "vendor"
+  },
+  "autoload": {
+    "psr-4": {
+      "Local\\App\\": "src/"
+    }
+  }
+}

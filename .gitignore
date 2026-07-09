@@ -1,0 +1,29 @@
+# ==========================================
+# Системные файлы ОС и IDE
+# ==========================================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+/bitrix/
+/upload/
+/local/upload/
+
+*.log
+
+/local/php_interface/dbconn.php
+/local/.settings.php
+
+/local/vendor/
+
+.env
+.env.local
+
+/local/cache/
+/local/managed_cache/

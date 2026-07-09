@@ -1,0 +1,55 @@
+name: Deploy to Timeweb
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: 'unimportant'
+          if_key_exists: replace
+
+      - name: Adding Known Hosts
+        run: ssh-keyscan -H vh464.timeweb.ru >> ~/.ssh/known_hosts
+
+      - name: Pack source code into archive
+        run: tar -czf /tmp/release.tar.gz --exclude='.git*' --exclude='node_modules' --exclude='vendor' ./
+
+      - name: Upload archive to Timeweb
+        run: |
+              scp /tmp/release.tar.gz cu162320@vh464.timeweb.ru:/home/c/cu162320/
+
+      - name: Extract, Build and Switch Symlink on Timeweb
+        run: |
+              ssh cu162320@vh464.timeweb.ru '
+                # 1. Создаем папку для нового релиза по хешу коммита
+                RELEASE_DIR="/home/c/cu162320/releases/${{ github.sha }}"
+                mkdir -p $RELEASE_DIR
+              
+                # 2. Распаковываем архив туда и удаляем сам архив
+                tar -xzf /home/c/cu162320/release.tar.gz -C $RELEASE_DIR
+                rm /home/c/cu162320/release.tar.gz
+              
+                # 3. Запускаем Composer внутри новой папки релиза
+                cd $RELEASE_DIR/local && composer2 update
+              
+                # 4. Cимлинк bitrix и upload
+                cd $RELEASE_DIR/
+                ln -sfn ../../bitrix bitrix
+                ln -sfn ../../upload upload
+          
+                # 5. Атомарно переключаем симлинк public_html на новый релиз
+                ln -sfn $RELEASE_DIR /home/c/cu162320/public_html
+              
+              '
